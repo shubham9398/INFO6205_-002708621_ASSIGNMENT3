@@ -8,6 +8,7 @@
 package edu.neu.coe.info6205.union_find;
 
 import java.util.Arrays;
+import java.util.Random;
 
 /**
  * Height-weighted Quick Union with Path Compression
@@ -79,10 +80,15 @@ public class UF_HWQUPC implements UF {
      * @throws IllegalArgumentException unless {@code 0 <= p < n}
      */
     public int find(int p) {
-        validate(p);
+    	validate(p);
         int root = p;
-        // FIXME
-        // END 
+        while (root != parent[root]) {
+            root = parent[root];
+        }
+
+        // Apply path compression using single-pass path-halving
+        if (pathCompression) doPathCompression(p);
+
         return root;
     }
 
@@ -160,7 +166,8 @@ public class UF_HWQUPC implements UF {
      * @return the parent of the component
      */
     private int getParent(int i) {
-        return parent[i];
+    	  return parent[i];
+    	
     }
 
     private final int[] parent;   // parent[i] = parent of i
@@ -170,6 +177,19 @@ public class UF_HWQUPC implements UF {
 
     private void mergeComponents(int i, int j) {
         // FIXME make shorter root point to taller one
+    	 int root1 = find(i);
+    	    int root2 = find(j);
+
+    	    if (height[root1] < height[root2]) {
+    	        parent[root1] = root2;
+    	    } else if (height[root1] > height[root2]) {
+    	        parent[root2] = root1;
+    	    } else {
+    	        parent[root2] = root1;
+    	        height[root1]++;
+    	    }
+   
+
         // END 
     }
 
@@ -178,6 +198,14 @@ public class UF_HWQUPC implements UF {
      */
     private void doPathCompression(int i) {
         // FIXME update parent to value of grandparent
+    	 // Update parent to value of grandparent
+    	while (i != parent[i]) {
+            parent[i] = parent[parent[i]];
+            i = parent[i];
+        }
+        return;
         // END 
     }
+    
+   
 }
