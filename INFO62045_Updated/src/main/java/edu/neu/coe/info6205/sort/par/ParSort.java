@@ -2,6 +2,7 @@ package edu.neu.coe.info6205.sort.par;
 
 import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ForkJoinPool;
 
 /**
  * This code has been fleshed out by Ziyao Qiao. Thanks very much.
@@ -10,9 +11,11 @@ import java.util.concurrent.CompletableFuture;
 class ParSort {
 
     public static int cutoff = 1000;
+    private static ForkJoinPool pool = new ForkJoinPool(1);
 
     public static void sort(int[] array, int from, int to) {
         if (to - from < cutoff) Arrays.sort(array, from, to);
+        
         else {
             // FIXME next few lines should be removed from public repo.
             CompletableFuture<int[]> parsort1 = parsort(array, from, from + (to - from) / 2); // TO IMPLEMENT
@@ -37,10 +40,24 @@ class ParSort {
             });
 
             parsort.whenComplete((result, throwable) -> System.arraycopy(result, 0, array, from, result.length));
-//            System.out.println("# threads: "+ ForkJoinPool.commonPool().getRunningThreadCount());
             parsort.join();
         }
     }
+    
+    public static void setCutoff(int cutoff) {
+        ParSort.cutoff = cutoff;
+    }
+
+    public static void setThreadNum(int threadNum)
+    {
+        pool = new ForkJoinPool(threadNum);
+    }
+
+    public static int getThreadNum()
+    {
+        return pool.getParallelism();
+    }
+
 
     private static CompletableFuture<int[]> parsort(int[] array, int from, int to) {
         return CompletableFuture.supplyAsync(
@@ -50,7 +67,7 @@ class ParSort {
                     System.arraycopy(array, from, result, 0, result.length);
                     sort(result, 0, to - from);
                     return result;
-                }
+                },pool
         );
     }
 }
